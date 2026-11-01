@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>لوحة التحكم</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0c110e;--s:#141c17;--s2:#1b2620;--line:#2a3a31;--gold:#d4a93c;--green:#3f8f5e;--text:#ece8dc;--muted:#a3ada5;--red:#c9604a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:"Tajawal","Segoe UI",sans-serif;line-height:1.7;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+button{font:inherit;color:inherit;cursor:pointer;border:1px solid var(--line);background:var(--s2);border-radius:10px;padding:8px 14px}
+button.p{background:var(--green);border-color:var(--green);color:#fff}
+button.d{border-color:var(--red);color:#e5a191}
+input,select,textarea{width:100%;font:inherit;color:var(--text);background:var(--s);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:4px 0 10px}
+textarea{min-height:90px;direction:ltr;text-align:left}
+textarea.rtl{direction:rtl;text-align:right}
+label{font-size:.85rem;color:var(--muted)}
+.box{max-width:420px;margin:12vh auto;padding:20px}
+.box h1{font-size:1.5rem;color:var(--gold);margin-bottom:12px}
+.wrap{max-width:760px;margin:0 auto;padding:12px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0}
+.top h1{font-size:1.2rem;color:var(--gold)}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:6px 0 10px}
+.tabs button{white-space:nowrap}
+.tabs button.on{background:var(--green);border-color:var(--green)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--s);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.row small{display:block;color:var(--muted)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.feed{background:var(--s);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:flex-start;justify-content:center;overflow-y:auto;z-index:10;padding:12px}
+.ov.on{display:flex}
+.sheet{background:var(--bg);border:1px solid var(--line);border-radius:16px;width:100%;max-width:640px;padding:14px}
+.msg{color:#e5a191;min-height:1.5em;font-size:.9rem}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green);padding:10px 18px;border-radius:12px;display:none;z-index:20}
+#toast.on{display:block}
+.note{font-size:.8rem;color:var(--muted);margin:6px 0 12px}
+</style>
+</head>
+<body>
+
+<div id="login" class="box">
+  <h1>تسجيل الدخول</h1>
+  <label for="em">البريد الإلكتروني</label>
+  <input id="em" type="email" autocomplete="username" dir="ltr">
+  <label for="pw">كلمة السر</label>
+  <input id="pw" type="password" autocomplete="current-password" dir="ltr">
+  <div class="msg" id="loginMsg"></div>
+  <button class="p" id="loginBtn">دخول</button>
+</div>
+
+<div id="app" class="wrap" hidden>
+  <div class="top"><h1>لوحة التحكم</h1><div><small id="who" style="color:var(--muted)"></small> <button id="out">خروج</button></div></div>
+  <div class="tabs" id="tabs">
+    <button data-p="cards" class="on">البطاقات</button>
+    <button data-p="feeds">مصادر الأخبار</button>
+    <button data-p="ads">الإعلانات</button>
+    <button data-p="site">الموقع</button>
+  </div>
+
+  <section id="p-cards">
+    <div class="bar"><button class="p" id="newCard">+ بطاقة جديدة</button><button id="seed">استيراد البطاقات الأساسية</button></div>
+    <p class="note" id="cardsNote"></p>
+    <div id="cardList"></div>
+  </section>
+
+  <section id="p-feeds" hidden>
+    <p class="note">هذه المصادر التي يجلب منها الموقع الأخبار. النطاق مثل: wafa.ps</p>
+    <div id="feedList"></div>
+    <div class="bar"><button id="addFeed">+ مصدر</button><button class="p" id="saveFeeds">حفظ المصادر</button></div>
+  </section>
+
+  <section id="p-ads" hidden>
+    <p class="note">الصق كود الإعلان كاملاً. اتركه فارغاً لإخفاء المساحة.</p>
+    <label for="adTop">إعلان أعلى البحث</label><textarea id="adTop"></textarea>
+    <label for="adInfeed">إعلان بين البطاقات والأخبار</label><textarea id="adInfeed"></textarea>
+    <label for="adModal">إعلان داخل نافذة التفاصيل</label><textarea id="adModal"></textarea>
+    <button class="p" id="saveAds">حفظ الإعلانات</button>
+  </section>
+
+  <section id="p-site" hidden>
+    <label for="siteName">اسم الموقع</label><input id="siteName" class="rtl">
+    <label for="siteTag">الوصف تحت الاسم</label><input id="siteTag" class="rtl">
+    <button class="p" id="saveSite">حفظ</button>
+  </section>
+</div>
+
+<div class="ov" id="ov">
+  <div class="sheet">
+    <label>القسم</label>
+    <select id="fCat"><option value="history">أرشيف وتاريخ</option><option value="news">أخبار موثقة</option><option value="docs">وثائق وكتب</option><option value="tools">أدوات كسر الحجب</option></select>
+    <label>العنوان</label><input id="fTitle">
+    <label>التاريخ أو الوصف القصير (مثل: 1882 – 1935)</label><input id="fDate">
+    <label>ملخص قصير يظهر على البطاقة</label><textarea id="fSummary" class="rtl"></textarea>
+    <label>النص الكامل</label><textarea id="fBody" class="rtl" style="min-height:160px"></textarea>
+    <label>رابط المصدر أو ملف PDF</label><input id="fUrl" dir="ltr">
+    <div class="grid2">
+      <div><label>اسم المصدر</label><input id="fSrc"></div>
+      <div><label>الترتيب (رقم)</label><input id="fOrder" type="number" dir="ltr"></div>
+    </div>
+    <div class="bar"><button class="p" id="fSave">حفظ</button><button id="fCancel">إلغاء</button><button class="d" id="fDel">حذف</button></div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script src="data.js"></script>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,collection,getDocs,doc,getDoc,setDoc,addDoc,deleteDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const cfg={
+  apiKey:"AIzaSyAPYuaRqSNK9VNIrlJioZgBQakrSJw2ZHc",
+  authDomain:"palestine-c92eb.firebaseapp.com",
+  projectId:"palestine-c92eb",
+  storageBucket:"palestine-c92eb.firebasestorage.app",
+  messagingSenderId:"222102606065",
+  appId:"1:222102606065:web:a8b7f35cc949f27cea9950"
+};
+const app=initializeApp(cfg), auth=getAuth(app), db=getFirestore(app);
+const $=id=>document.getElementById(id);
+const CATS={history:"أرشيف وتاريخ",news:"أخبار موثقة",docs:"وثائق وكتب",tools:"أدوات كسر الحجب"};
+let cards=[], conf={}, editing=null, feeds=[];
+
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("on");setTimeout(()=>e.classList.remove("on"),2400)}
+function fail(e){toast(e&&e.code==="permission-denied"?"لا توجد صلاحية الكتابة. تحقق من القواعد وبريدك.":"حدث خطأ: "+(e&&e.code||e))}
+
+/* الدخول */
+$("loginBtn").onclick=async()=>{
+  $("loginMsg").textContent="";
+  try{await signInWithEmailAndPassword(auth,$("em").value.trim(),$("pw").value)}
+  catch(e){$("loginMsg").textContent="البريد أو كلمة السر غير صحيحة."}
+};
+$("pw").addEventListener("keydown",e=>{if(e.key==="Enter")$("loginBtn").click()});
+$("out").onclick=()=>signOut(auth);
+onAuthStateChanged(auth,u=>{
+  $("login").hidden=!!u; $("app").hidden=!u;
+  if(u){$("who").textContent=u.email;loadAll().catch(fail)}
+});
+
+/* التحميل */
+async function loadAll(){
+  const s=await getDocs(collection(db,"cards")); cards=[];
+  s.forEach(d=>cards.push(Object.assign({},d.data(),{_id:d.id})));
+  cards.sort((a,b)=>(a.order||0)-(b.order||0));
+  const c=await getDoc(doc(db,"site","config")); conf=c.exists()?c.data():{};
+  feeds=(conf.feeds&&conf.feeds.length?conf.feeds:window.FEEDS).map(f=>({name:f.name,kind:f.kind,d:f.d,lang:f.lang}));
+  renderCards(); renderFeeds();
+  $("adTop").value=conf.adTop||""; $("adInfeed").value=conf.adInfeed||""; $("adModal").value=conf.adModal||"";
+  $("siteName").value=conf.name||"أرشيف المقاومة"; $("siteTag").value=conf.tagline||"";
+}
+
+/* التبويبات */
+$("tabs").onclick=e=>{
+  const b=e.target.closest("button"); if(!b)return;
+  [...$("tabs").children].forEach(x=>x.classList.toggle("on",x===b));
+  ["cards","feeds","ads","site"].forEach(p=>$("p-"+p).hidden=(p!==b.dataset.p));
+};
+
+/* البطاقات */
+function renderCards(){
+  $("cardsNote").textContent=cards.length?"عدد البطاقات: "+cards.length:"لا توجد بطاقات محفوظة بعد، فالموقع يعرض البطاقات الأساسية. اضغط «استيراد البطاقات الأساسية» لتعديلها.";
+  $("cardList").innerHTML=cards.map(c=>'<div class="row"><div><b>'+esc(c.title)+'</b><small>'+esc(CATS[c.cat]||c.cat)+' · '+esc(c.date)+'</small></div><button data-e="'+esc(c._id)+'">تعديل</button></div>').join("");
+}
+$("cardList").onclick=e=>{const b=e.target.closest("button");if(b)openEditor(cards.find(c=>c._id===b.dataset.e))};
+$("newCard").onclick=()=>openEditor(null);
+function openEditor(c){
+  editing=c?c._id:null; c=c||{};
+  $("fCat").value=c.cat||"history"; $("fTitle").value=c.title||""; $("fDate").value=c.date||"";
+  $("fSummary").value=c.summary||""; $("fBody").value=c.body||""; $("fUrl").value=c.url||""; $("fSrc").value=c.src||"";
+  $("fOrder").value=c.order!=null?c.order:(cards.length?Math.max.apply(null,cards.map(x=>x.order||0))+1:1);
+  $("fDel").hidden=!editing; $("ov").classList.add("on");
+}
+$("fCancel").onclick=()=>$("ov").classList.remove("on");
+$("fSave").onclick=async()=>{
+  const data={cat:$("fCat").value,title:$("fTitle").value.trim(),date:$("fDate").value.trim(),summary:$("fSummary").value.trim(),
+    body:$("fBody").value.trim(),url:$("fUrl").value.trim(),src:$("fSrc").value.trim(),order:Number($("fOrder").value)||0};
+  if(!data.title){toast("اكتب العنوان أولاً");return}
+  try{
+    if(editing)await setDoc(doc(db,"cards",editing),data); else await addDoc(collection(db,"cards"),data);
+    $("ov").classList.remove("on"); toast("تم الحفظ"); await loadAll();
+  }catch(e){fail(e)}
+};
+$("fDel").onclick=async()=>{
+  if(!editing||!confirm("حذف هذه البطاقة نهائياً؟"))return;
+  try{await deleteDoc(doc(db,"cards",editing)); $("ov").classList.remove("on"); toast("تم الحذف"); await loadAll()}catch(e){fail(e)}
+};
+$("seed").onclick=async()=>{
+  if(cards.length&&!confirm("يوجد بطاقات محفوظة. سيتم إضافة البطاقات الأساسية فوقها وقد تتكرر. متابعة؟"))return;
+  try{
+    const list=window.ITEMS;
+    for(let i=0;i<list.length;i++){const x=list[i];
+      await addDoc(collection(db,"cards"),{cat:x.cat,title:x.title,date:x.date,summary:x.summary,body:x.body,url:x.url,src:x.src,order:i+1});}
+    toast("تم الاستيراد"); await loadAll();
+  }catch(e){fail(e)}
+};
+
+/* مصادر الأخبار */
+function renderFeeds(){
+  $("feedList").innerHTML=feeds.map((f,i)=>'<div class="feed" data-i="'+i+'">'+
+    '<input data-k="name" placeholder="اسم المصدر" value="'+esc(f.name)+'">'+
+    '<input data-k="d" dir="ltr" placeholder="wafa.ps" value="'+esc(f.d)+'">'+
+    '<div class="grid2"><select data-k="kind">'+["محلي","عربي","دولي","إسرائيلي"].map(k=>'<option'+(k===f.kind?' selected':'')+'>'+k+'</option>').join("")+'</select>'+
+    '<select data-k="lang"><option value="ar"'+(f.lang==="ar"?' selected':'')+'>عربي</option><option value="en"'+(f.lang==="en"?' selected':'')+'>إنجليزي</option></select></div>'+
+    '<button class="d" data-del="'+i+'">حذف</button></div>').join("");
+}
+function readFeeds(){
+  return [...$("feedList").children].map(r=>{const o={};r.querySelectorAll("[data-k]").forEach(x=>o[x.dataset.k]=x.value.trim());return o}).filter(f=>f.name&&f.d);
+}
+$("feedList").onclick=e=>{const b=e.target.closest("[data-del]");if(!b)return;feeds=readFeeds();feeds.splice(+b.dataset.del,1);renderFeeds()};
+$("addFeed").onclick=()=>{feeds=readFeeds();feeds.push({name:"",kind:"عربي",d:"",lang:"ar"});renderFeeds()};
+$("saveFeeds").onclick=()=>saveConf({feeds:readFeeds()});
+
+/* الإعلانات والموقع */
+$("saveAds").onclick=()=>saveConf({adTop:$("adTop").value.trim(),adInfeed:$("adInfeed").value.trim(),adModal:$("adModal").value.trim()});
+$("saveSite").onclick=()=>saveConf({name:$("siteName").value.trim(),tagline:$("siteTag").value.trim()});
+async function saveConf(patch){
+  try{await setDoc(doc(db,"site","config"),patch,{merge:true});Object.assign(conf,patch);toast("تم الحفظ")}catch(e){fail(e)}
+}
+</script>
+</body>
+</html>
